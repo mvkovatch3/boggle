@@ -41,5 +41,11 @@ def get_board(special=False):
         [np.random.choice(5, 25)],
     ]
     board = dice[tuple(letter_inds)].flatten()
+    angles = np.random.choice(np.array([0, 0.5, 1, 1.5]) * np.pi, 25)
+    xoffset_dict = {0: 0, 0.5 * np.pi: 35, np.pi: 0, 1.5 * np.pi: -35}
+    yoffset_dict = {0: 0, 0.5 * np.pi: -35, np.pi: -70, 1.5 * np.pi: -35}
+    xoffset = [xoffset_dict[a] for a in angles]
+    yoffset = [yoffset_dict[a] for a in angles]
 
-    return board
+    return board, angles, xoffset, yoffset
+

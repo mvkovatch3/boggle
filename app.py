@@ -43,10 +43,31 @@ grid.add_glyph(dice_src, dice)
 # TODO: random orientation U/D/L/R
 x_letters = x_dice.reshape(25, 1)
 y_letters = (y_dice - 0.3).reshape(25, 1)
+letter_angles = np.zeros(len(x_letters))
+xoffset = np.zeros(len(x_letters))
+yoffset = np.zeros(len(x_letters))
 text = np.ones(len(x_letters)).astype(str)
 text[:] = "X"
-letter_src = ColumnDataSource(dict(x=x_letters, y=y_letters, text=text))
-letters = Text(x="x", y="y", text="text", text_font_size="64px", text_align="center",)
+letter_src = ColumnDataSource(
+    dict(
+        x=x_letters,
+        y=y_letters,
+        angle=letter_angles,
+        x_off=xoffset,
+        y_off=yoffset,
+        text=text,
+    )
+)
+letters = Text(
+    x="x",
+    y="y",
+    angle="angle",
+    x_offset="x_off",
+    y_offset="y_off",
+    text="text",
+    text_font_size="64px",
+    text_align="center",
+)
 grid.add_glyph(letter_src, letters)
 
 # Set up widgets
@@ -56,6 +77,7 @@ special_toggle = Toggle(
 [He, An, In, Er, Th, Qu]""",
     button_type="warning",
 )
+angle_toggle = Toggle(label="Rotate dice in random direction?", button_type="primary")
 shuffle_button = Button(label="Shake!", button_type="primary")
 start_button = Button(label="Start timer", button_type="success")
 stop_button = Button(label="Stop timer", button_type="danger")
@@ -66,7 +88,28 @@ timer = Div(
 
 # Set up callback functions
 def shuffle():
-    letter_src.data["text"] = get_board(special=special_toggle.active)
+    if angle_toggle.active:
+        (
+            letter_src.data["text"],
+            letter_src.data["angle"],
+            letter_src.data["x_off"],
+            letter_src.data["y_off"],
+        ) = get_board(
+            special=special_toggle.active
+        )  # put angles in to get_board(angles=True/False)
+    else:
+        new_letters, *_ = get_board(special=special_toggle.active)
+        (
+            letter_src.data["text"],
+            letter_src.data["angle"],
+            letter_src.data["x_off"],
+            letter_src.data["y_off"],
+        ) = (
+            new_letters,
+            np.zeros(len(x_letters)),
+            np.zeros(len(x_letters)),
+            np.zeros(len(x_letters)),
+        )
 
 
 def start_game():
@@ -104,7 +147,13 @@ stop_button.on_click(stop_timer)
 
 # Set up layouts and add to document
 inputs = column(
-    special_toggle, shuffle_button, time_slider, start_button, stop_button, timer
+    special_toggle,
+    angle_toggle,
+    shuffle_button,
+    time_slider,
+    start_button,
+    stop_button,
+    timer,
 )
 
 curdoc().add_root(row(inputs, grid, width=800))
