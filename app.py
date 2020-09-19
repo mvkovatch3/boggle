@@ -2,10 +2,20 @@ import numpy as np
 from time import sleep
 
 from functions import get_board
+from stack_solution import get_word_list
 
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
-from bokeh.models import ColumnDataSource, Toggle, Div, Slider, Text, Button
+from bokeh.models import (
+    ColumnDataSource,
+    Toggle,
+    Div,
+    Slider,
+    Text,
+    Button,
+    MultiSelect,
+    RadioButtonGroup
+)
 
 # replace with JSON self defined MultiPolygon later
 from bokeh.models.glyphs import Rect
@@ -16,6 +26,9 @@ from bokeh.plotting import figure
 global duration
 duration = 0
 doc = curdoc()
+
+global words
+words = {}
 
 # Set up grid
 grid = figure(
@@ -46,8 +59,7 @@ y_letters = (y_dice - 0.3).reshape(25, 1)
 letter_angles = np.zeros(len(x_letters))
 xoffset = np.zeros(len(x_letters))
 yoffset = np.zeros(len(x_letters))
-text = np.ones(len(x_letters)).astype(str)
-text[:] = "X"
+text = np.full(len(x_letters), "X")
 letter_src = ColumnDataSource(
     dict(
         x=x_letters,
@@ -85,9 +97,13 @@ timer = Div(
     text=f"""Timer: <br> 0:00""",
     style={"font-size": "400%", "color": "black", "text-align": "center"},
 )
+show_words_button = Button(label="Show all words?", button_type="danger")
+show_words_options = RadioButtonGroup(labels=["Alphabetical", "By Length"], active=0)
+word_select = MultiSelect(value=[], options=[], height=500, size=10)
 
 # Set up callback functions
 def shuffle():
+    word_select.options = []  # clear word list
     if angle_toggle.active:
         (
             letter_src.data["text"],
@@ -140,10 +156,39 @@ def stop_timer():
     timer.style["color"] = "black"
 
 
+def show_word_list():
+    global words
+    words = get_word_list(letter_src.data["text"], min_length=3)
+
+    if show_words_options.active == 0:
+        word_select.options = sorted(words.keys())
+    elif show_words_options.active == 1:
+        word_select.options = sorted(words.keys(), key=len, reverse=True)
+
+
+def sort_word_list(attr, old, new):
+    if new == 0:
+        word_select.options = sorted(word_select.options)
+    elif new == 1:
+        word_select.options = sorted(word_select.options, key=len, reverse=True)
+
+def show_word(attr, old, new):
+    # highlight path to word (if it exists)
+    if duration > 0:
+        pass
+    elif new == []:
+        pass  # reset highlights
+    else:
+        pass  # highlight the word
+
+
 # Set up callbacks
 shuffle_button.on_click(shuffle)
 start_button.on_click(start_game)
 stop_button.on_click(stop_timer)
+show_words_button.on_click(show_word_list)
+show_words_options.on_change("active", sort_word_list)
+word_select.on_change("value", show_word)
 
 # Set up layouts and add to document
 inputs = column(
@@ -155,8 +200,9 @@ inputs = column(
     stop_button,
     timer,
 )
+rhs = column(show_words_button, show_words_options, word_select, width=200)
 
-curdoc().add_root(row(inputs, grid, width=800))
+curdoc().add_root(row(inputs, grid, rhs, width=800))
 curdoc().title = "Boggle"
 
 doc.add_periodic_callback(run_timer, 250)

@@ -2,7 +2,7 @@ import numpy as np
 
 
 def get_board(special=False):
-
+    # temporarily remove Qu
     dice = np.array(
         [
             ["A", "A", "F", "I", "R", "S"],
@@ -15,12 +15,12 @@ def get_board(special=False):
             ["C", "C", "E", "N", "S", "T"],
             ["A", "F", "I", "R", "S", "Y"],
             ["O", "O", "O", "T", "T", "U"],
-            ["I", "K", "L", "Qu", "U", "W"],
+            ["I", "K", "L", "R", "U", "W"], # ["I", "K", "L", "Qu", "U", "W"],
             ["A", "E", "G", "M", "N", "N"],
             ["A", "A", "A", "F", "R", "S"],
             ["N", "O", "O", "T", "U", "W"],
             ["C", "E", "I", "I", "L", "T"],
-            ["B", "J", "K", "Qu", "X", "Z"],
+            ["B", "J", "K", "R", "X", "Z"], # ["B", "J", "K", "Qu", "X", "Z"],
             ["E", "N", "S", "S", "S", "U"],
             ["D", "H", "H", "L", "O", "R"],
             ["D", "H", "L", "N", "O", "R"],
@@ -30,7 +30,8 @@ def get_board(special=False):
             ["C", "E", "I", "P", "S", "T"],
             ["C", "E", "I", "L", "P", "T"],
             ["G", "O", "R", "R", "V", "W"],
-        ]
+        ],
+        dtype=str,
     )
 
     if special:
