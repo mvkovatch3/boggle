@@ -1,6 +1,6 @@
 import numpy as np
 
-
+# What is the probability of getting 6+ E's on one board
 def get_board(special=False):
     # temporarily remove Qu
     dice = np.array(

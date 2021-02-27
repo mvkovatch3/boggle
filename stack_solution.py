@@ -1,4 +1,4 @@
-from nltk.corpus import words
+from nltk.corpus import words as words_corpus
 
 # to run:
 """
@@ -49,7 +49,7 @@ def make_lookups(grid, fn="dict.txt"):
             chars.update(word.lower())
 
     valid_words = set()
-    for w in words.words():
+    for w in words_corpus.words():
         if set(w.strip()) <= chars:
             valid_words.add(w)
 
