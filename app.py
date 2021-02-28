@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-from time import sleep
 
 from functions import get_board
 from stack_solution import get_word_list
@@ -49,8 +48,11 @@ grid.ygrid.grid_line_color = None
 # Add blank dice
 x_dice = np.arange(0, 5) + 0.5
 x_dice, y_dice = np.meshgrid(x_dice, x_dice)
-dice_src = ColumnDataSource(dict(x=x_dice, y=y_dice))
-dice = Rect(x="x", y="y", width=0.95, height=0.95, fill_color="#cab2d6")
+alpha_dice = np.ones(x_dice.shape)
+dice_src = ColumnDataSource(dict(x=x_dice, y=y_dice, fill_alpha=alpha_dice))
+dice = Rect(
+    x="x", y="y", width=0.95, height=0.95, fill_color="#cab2d6", fill_alpha="fill_alpha"
+)
 grid.add_glyph(dice_src, dice)
 
 # Add letters
@@ -127,10 +129,12 @@ p.quad(
 )
 # p.line(x="x", y="pdf", line_color="#ff8888", line_width=4, alpha=0.7, source=pdf_src)
 
+
 # Set up callback functions
 def shuffle():
 
     word_select.options = []  # clear word list
+    word_select.value = []  # clear list pointer (triggers show_word())
     word_count.text = ""  # clear word count
     update_word_hist()
 
@@ -198,7 +202,7 @@ def show_word_list():
         word_select.options = sorted(words.keys())
     elif show_words_options.active == 1:
         word_select.options = sorted(words.keys(), key=len, reverse=True)
-    points = np.sum([len(x)-3 for x in words.keys()])
+    points = np.sum([len(x) - 3 for x in words.keys()])
     word_count.text = f"{len(words)} words, worth {points} points"
 
 
@@ -224,13 +228,17 @@ def sort_word_list(attr, old, new):
 
 
 def show_word(attr, old, new):
+
     # highlight path to word (if it exists)
-    if duration > 0:
-        pass
-    elif new == []:
-        pass  # reset highlights
+    if (duration <= 0) and (len(new) == 1):
+        word_path = np.array(words[new[0]]).dot([5, 1])
+        highlight_alpha = np.ones((25,)) * 0.25
+        highlight_alpha[word_path] = 1
+        dice_src.data["fill_alpha"] = highlight_alpha.reshape(5, 5)
+
+    # reset highlights
     else:
-        pass  # highlight the word
+        dice_src.data["fill_alpha"] = np.ones((5, 5))
 
 
 # Set up callbacks
